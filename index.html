@@ -3,28 +3,52 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#075b45">
-  <meta name="description" content="Cambria Vehicle Check">
-  <title>Cambria Vehicle Check</title>
+  <meta name="theme-color" content="#062b67">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Fleet Safety">
+  <meta name="description" content="Cambria Sea Scouts Fleet Safety vehicle checks">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Cambria Fleet Safety</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" href="images/icon-192.png" type="image/png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="app-header">
-    <div class="header-inner">
-      <img class="brand-logo" src="images/cambria-logo.svg" alt="Cambria logo">
-      <div>
-        <p class="eyebrow">Fleet safety</p>
-        <h1>Vehicle Check</h1>
-      </div>
+  <header class="topbar">
+    <div class="brand-logo-wrap">
+      <img class="cambria-header-logo" src="images/cambria-logo.png" alt="Cambria Sea Scouts">
+    </div>
+    <div class="header-tools">
+      <div class="brand-app-name">Fleet Safety</div>
     </div>
   </header>
 
   <main class="app-shell">
+    <section class="fleet-hero" aria-labelledby="fleetSafetyTitle">
+      <div class="fleet-hero-copy">
+        <p class="eyebrow dark">Fleet Safety</p>
+        <h1 id="fleetSafetyTitle">Vehicle Check Companion</h1>
+        <p>Daily inspections, roadworthiness checks and defect reporting for Cambria Sea Scouts vehicles.</p>
+        <div class="hero-chips" aria-label="App features">
+          <span>✓ Guided checks</span>
+          <span>⚠ Defect reporting</span>
+          <span>▦ Fleet overview</span>
+        </div>
+      </div>
+      <div class="fleet-hero-icon" aria-hidden="true">🚐</div>
+    </section>
+
     <nav class="view-tabs" aria-label="Application view">
-      <button id="driverTab" class="tab active" type="button">Driver check</button>
-      <button id="managerTab" class="tab" type="button">Manager dashboard</button>
+      <button id="driverTab" class="tab active" type="button">
+        <span aria-hidden="true">✓</span>
+        Driver check
+      </button>
+      <button id="managerTab" class="tab" type="button">
+        <span aria-hidden="true">▦</span>
+        Manager dashboard
+      </button>
     </nav>
 
     <div id="lastSubmission" class="last-submission hidden" role="status"></div>
@@ -34,7 +58,7 @@
         <div class="step-heading">
           <span class="step-number">1</span>
           <div>
-            <p class="eyebrow">Select vehicle</p>
+            <p class="eyebrow dark">Select vehicle</p>
             <h2>Which vehicle are you checking?</h2>
           </div>
         </div>
@@ -50,7 +74,7 @@
         <div class="step-heading">
           <span class="step-number">2</span>
           <div>
-            <p class="eyebrow">Journey details</p>
+            <p class="eyebrow dark">Journey details</p>
             <h2>Driver and mileage</h2>
           </div>
         </div>
@@ -84,7 +108,7 @@
         <div class="step-heading">
           <span class="step-number">3</span>
           <div>
-            <p class="eyebrow">Safety inspection</p>
+            <p class="eyebrow dark">Safety inspection</p>
             <h2>Complete every check</h2>
           </div>
         </div>
@@ -124,7 +148,7 @@
         <div class="step-heading">
           <span class="step-number">4</span>
           <div>
-            <p class="eyebrow">Confirm and submit</p>
+            <p class="eyebrow dark">Confirm and submit</p>
             <h2>Review the vehicle check</h2>
           </div>
         </div>
@@ -163,7 +187,7 @@
       <section class="panel">
         <div class="manager-heading">
           <div>
-            <p class="eyebrow">This device</p>
+            <p class="eyebrow dark">Fleet Safety</p>
             <h2>Manager dashboard</h2>
             <p class="muted">Figures below are based on checks stored locally in this browser.</p>
           </div>
@@ -204,7 +228,8 @@
   </main>
 
   <footer>
-    Cambria Vehicle Check · v3.4 Sheets-Driven
+    <span>Cambria Sea Scouts · Fleet Safety</span>
+    <small>Version 4.0 Production</small>
   </footer>
 
   <script src="app.js"></script>

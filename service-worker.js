@@ -1,12 +1,14 @@
-const CACHE_NAME = "cambria-vehicle-check-v3-4";
+const CACHE_NAME = "cambria-fleet-safety-v4-0";
 const APP_FILES = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./manifest.webmanifest",
-  "./images/cambria-logo.svg",
-  "./images/icon.svg"
+  "./images/cambria-logo.png",
+  "./images/icon-192.png",
+  "./images/icon-512.png",
+  "./apple-touch-icon.png"
 ];
 
 self.addEventListener("install", event => {
