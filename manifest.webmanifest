@@ -1,8 +1,18 @@
 {
   "name": "Cambria Vehicle Check",
   "short_name": "Vehicle Check",
-  "start_url": "./index.html",
+  "description": "Cambria fleet vehicle safety checks using live Google Sheets data",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#edf3f7",
-  "theme_color": "#0b2f4a"
+  "background_color": "#f2f5f4",
+  "theme_color": "#075b45",
+  "icons": [
+    {
+      "src": "images/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
