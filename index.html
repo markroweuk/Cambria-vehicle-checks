@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cambria Vehicle Check</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+<h1>Cambria Vehicle Check</h1>
+<p>Fleet Compliance Portal</p>
+</header>
+
+<section class="card">
+<h2>Fleet Dashboard</h2>
+
+<input id="search" placeholder="Search vehicle or driver">
+
+<button onclick="loadVehicles()">Vehicle Compliance</button>
+<button onclick="loadDefects()">Defect Tracker</button>
+<button onclick="loadDrivers()">Driver Activity</button>
+
+<div id="result"></div>
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>

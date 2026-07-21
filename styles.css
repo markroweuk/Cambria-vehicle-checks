@@ -1,0 +1,8 @@
+body{font-family:Arial;background:#eef3f5;margin:0;color:#222}
+header{background:#0b2f4a;color:white;text-align:center;padding:24px}
+.card{background:white;margin:15px;padding:20px;border-radius:18px}
+button,input{width:100%;padding:14px;margin:8px 0;border-radius:10px}
+button{background:#006ddf;color:white;border:0;font-weight:bold}
+.ok{color:green;font-weight:bold}
+.open{color:red;font-weight:bold}
+.item{border-bottom:1px solid #ddd;padding:12px}
