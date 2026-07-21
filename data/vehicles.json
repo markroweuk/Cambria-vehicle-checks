@@ -1,0 +1,46 @@
+[
+  {
+    "vehicleId": "V001",
+    "registration": "SC16LVY",
+    "category": "Minibus",
+    "type": "Standard Minibus",
+    "seats": 16,
+    "tailLift": "No",
+    "active": true,
+    "photoUrl": "",
+    "notes": ""
+  },
+  {
+    "vehicleId": "V002",
+    "registration": "YT60XTR",
+    "category": "Minibus",
+    "type": "Standard Minibus",
+    "seats": 16,
+    "tailLift": "No",
+    "active": true,
+    "photoUrl": "",
+    "notes": ""
+  },
+  {
+    "vehicleId": "V003",
+    "registration": "HX04XTL",
+    "category": "Minibus",
+    "type": "Standard Minibus",
+    "seats": 16,
+    "tailLift": "No",
+    "active": true,
+    "photoUrl": "",
+    "notes": ""
+  },
+  {
+    "vehicleId": "V004",
+    "registration": "MX10AYH",
+    "category": "Lorry",
+    "type": "Lorry with Tail Lift",
+    "seats": "",
+    "tailLift": "Yes",
+    "active": true,
+    "photoUrl": "",
+    "notes": ""
+  }
+]

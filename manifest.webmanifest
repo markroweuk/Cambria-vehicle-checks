@@ -1,0 +1,8 @@
+{
+  "name": "Cambria Vehicle Check",
+  "short_name": "Vehicle Check",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#edf3f7",
+  "theme_color": "#0b2f4a"
+}

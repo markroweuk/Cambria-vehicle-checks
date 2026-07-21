@@ -1,28 +1,171 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cambria Vehicle Check</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b2f4a">
+  <title>Cambria Vehicle Check</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header>
-<h1>Cambria Vehicle Check</h1>
-<p>Fleet Compliance Portal</p>
-</header>
+  <header class="topbar">
+    <img src="images/cambria-logo.png" alt="Cambria" class="logo">
+    <div>
+      <h1>Vehicle Check</h1>
+      <p>Fleet compliance and daily inspections</p>
+    </div>
+  </header>
 
-<section class="card">
-<h2>Fleet Dashboard</h2>
+  <nav class="tabs" aria-label="App sections">
+    <button id="driverTab" class="tab active" type="button">Driver Check</button>
+    <button id="managerTab" class="tab" type="button">Manager Dashboard</button>
+  </nav>
 
-<input id="search" placeholder="Search vehicle or driver">
+  <main>
+    <section id="driverView">
+      <section id="vehicleStep" class="card compact">
+        <div class="step-label">Step 1 of 4</div>
+        <h2>Select vehicle</h2>
+        <label for="vehicle">Available vehicle</label>
+        <select id="vehicle"></select>
+        <div id="vehicleDetails" class="vehicle-summary"></div>
+        <button id="vehicleNextBtn" class="primary" type="button">Continue</button>
+      </section>
 
-<button onclick="loadVehicles()">Vehicle Compliance</button>
-<button onclick="loadDefects()">Defect Tracker</button>
-<button onclick="loadDrivers()">Driver Activity</button>
+      <section id="detailsStep" class="card compact hidden">
+        <div class="step-label">Step 2 of 4</div>
+        <h2>Driver and journey</h2>
+        <div class="grid">
+          <label>Driver
+            <select id="driver"></select>
+          </label>
+          <label>Start mileage
+            <input id="mileage" type="number" inputmode="numeric" min="0" placeholder="e.g. 45231">
+          </label>
+          <label>Estimated departure
+            <input id="departure" type="time">
+          </label>
+          <label>Estimated return
+            <input id="returnTime" type="time">
+          </label>
+        </div>
+        <div class="actions">
+          <button id="detailsBackBtn" class="secondary" type="button">Back</button>
+          <button id="inspectionStartBtn" class="primary" type="button">Start inspection</button>
+        </div>
+      </section>
 
-<div id="result"></div>
-</section>
+      <section id="inspectionStep" class="card hidden">
+        <div class="step-label">Step 3 of 4</div>
+        <div class="section-heading">
+          <div>
+            <h2>Pre-use inspection</h2>
+            <p id="progressText" class="muted">0 of 10 checks completed</p>
+          </div>
+          <span id="defectCount" class="status-pill neutral">No defects</span>
+        </div>
 
-<script src="app.js"></script>
+        <div id="questions" class="questions"></div>
+
+        <div id="defectPanel" class="panel warning hidden">
+          <h3>Defect details</h3>
+          <p>Describe every failed check. Submission is still allowed.</p>
+          <textarea id="defects" rows="4" placeholder="Describe the issue, location and severity"></textarea>
+          <label class="file-label">Damage photos
+            <input id="damagePhotos" type="file" accept="image/*" capture="environment" multiple>
+          </label>
+          <div id="damageFileSummary" class="file-summary"></div>
+        </div>
+
+        <div id="seatingPanel" class="panel">
+          <h3>Seating photograph</h3>
+          <p>Required for minibuses. Take a clear photograph of the passenger seating area.</p>
+          <label class="file-label">Seating photo
+            <input id="seatingPhoto" type="file" accept="image/*" capture="environment">
+          </label>
+          <div id="seatingFileSummary" class="file-summary"></div>
+        </div>
+
+        <div class="actions">
+          <button id="inspectionBackBtn" class="secondary" type="button">Back</button>
+          <button id="reviewBtn" class="primary" type="button">Review check</button>
+        </div>
+      </section>
+
+      <section id="reviewStep" class="card hidden">
+        <div class="step-label">Step 4 of 4</div>
+        <h2>Review and submit</h2>
+        <div id="reviewSummary"></div>
+
+        <div class="declaration">
+          <h3>Driver declaration</h3>
+          <label class="check-row">
+            <input id="informationDeclaration" type="checkbox">
+            <span>I confirm that the information provided is correct and complete.</span>
+          </label>
+          <label class="check-row">
+            <input id="licenceDeclaration" type="checkbox">
+            <span>I confirm that I hold the relevant driving licence for this vehicle.</span>
+          </label>
+        </div>
+
+        <p class="responsibility">
+          It is the driver's responsibility to ensure the vehicle is roadworthy, safe and suitable for use before driving.
+        </p>
+
+        <div id="submissionMessage" class="message hidden"></div>
+
+        <div class="actions">
+          <button id="reviewBackBtn" class="secondary" type="button">Back</button>
+          <button id="submitBtn" class="primary" type="button">Submit vehicle check</button>
+        </div>
+      </section>
+    </section>
+
+    <section id="managerView" class="hidden">
+      <section class="dashboard-grid">
+        <article class="metric-card">
+          <span>Checks saved</span>
+          <strong id="metricChecks">0</strong>
+        </article>
+        <article class="metric-card">
+          <span>Open defects</span>
+          <strong id="metricDefects">0</strong>
+        </article>
+        <article class="metric-card">
+          <span>Vehicles checked</span>
+          <strong id="metricVehicles">0</strong>
+        </article>
+      </section>
+
+      <section class="card compact">
+        <div class="section-heading">
+          <div>
+            <h2>Fleet overview</h2>
+            <p class="muted">Based on completed checks stored on this device.</p>
+          </div>
+          <button id="refreshDashboardBtn" class="small secondary" type="button">Refresh</button>
+        </div>
+        <div id="fleetOverview"></div>
+      </section>
+
+      <section class="card compact">
+        <h2>Recent submissions</h2>
+        <div id="recentChecks"></div>
+      </section>
+
+      <section class="card compact">
+        <h2>Open defects</h2>
+        <div id="openDefects"></div>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    Cambria Vehicle Check · Drivers must not use a vehicle they believe is unsafe.
+  </footer>
+
+  <script src="app.js"></script>
 </body>
 </html>
