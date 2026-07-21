@@ -83,6 +83,11 @@
           <div>
             <label for="driver">Driver</label>
             <select id="driver"></select>
+            <div id="customDriverWrap" class="custom-driver hidden">
+              <label for="customDriver">Driver's full name</label>
+              <input id="customDriver" type="text" autocomplete="name" maxlength="80" placeholder="Type the driver's full name">
+              <p class="field-help">Use this for guest or loan drivers who are not in the Drivers sheet.</p>
+            </div>
           </div>
           <div>
             <label for="mileage">Start mileage</label>
@@ -229,7 +234,7 @@
 
   <footer>
     <span>Cambria Sea Scouts · Fleet Safety</span>
-    <small>Version 4.0 Production</small>
+    <small>Version 4.1 Production</small>
   </footer>
 
   <script src="app.js"></script>

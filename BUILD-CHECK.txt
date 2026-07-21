@@ -1,0 +1,4 @@
+JavaScript syntax: PASS
+Missing DOM IDs: None
+Vehicle illustrations: 4
+Question count: 11

@@ -1,70 +1,38 @@
-CAMBRIA VEHICLE CHECK — v3.4 SHEETS-DRIVEN
+CAMBRIA FLEET SAFETY — VERSION 4.1 PRODUCTION
 
-WHAT CHANGED
-- Vehicles now load from the "Vehicle Register" Google Sheet.
-- Drivers now load from the "Drivers" Google Sheet.
-- data/vehicles.json and data/drivers.json have been removed.
-- The last successfully loaded fleet list is cached locally for temporary offline use.
-- Inspections, answers, defects and email reports continue through Apps Script.
+This release keeps the live Google Sheets architecture from v3.4 and restores
+the Cambria Sea Scouts visual identity from Camp Companion.
 
-IMPORTANT: BOTH SIDES MUST BE DEPLOYED
-The new frontend calls:
-  GET <Apps Script URL>?action=bootstrap
+BRANDING CHANGES
+- Uses the same Cambria Sea Scouts logo artwork as Camp Companion.
+- Uses the same navy/blue header and purple Scout accent.
+- Header app name is "Fleet Safety", matching the "Camp Companion" treatment.
+- New Fleet Safety hero card: "Vehicle Check Companion".
+- Cards, typography, spacing and buttons now follow the same Cambria design family.
 
-Your Apps Script must therefore be updated with:
-  apps-script/Code.gs
+DATA ARCHITECTURE
+- Vehicles load from the "Vehicle Register" Google Sheet.
+- Drivers load from the "Drivers" Google Sheet.
+- Inspections write to "Inspections".
+- Answers write to "Inspection Answers".
+- Defects write to "Defects".
+- Reports are sent by Google Apps Script.
 
-BACKEND DEPLOYMENT
-1. Open the Apps Script project connected to the spreadsheet.
-2. Back up the current Code.gs.
-3. Replace Code.gs with apps-script/Code.gs from this package.
-4. Set SPREADSHEET_ID near the top of the file.
-5. Save.
-6. Deploy > Manage deployments > Edit.
-7. Select "New version".
-8. Execute as: Me.
-9. Access: Anyone.
-10. Deploy.
-11. Keep the /exec URL.
+DEPLOYMENT
+1. Complete the Apps Script v3.4 backend deployment first.
+2. Confirm <EXEC_URL>?action=bootstrap returns vehicles and drivers.
+3. Replace the files in the GitLab/Cloudflare frontend repository with this package.
+4. Commit and wait for Cloudflare Pages to deploy.
+5. Clear the old PWA/site cache once, or remove and reinstall the PWA.
+6. Confirm the Cambria header, Fleet Safety title, vehicles and drivers all appear.
+7. Submit one normal check and one defect check.
 
-FRONTEND URL
-app.js currently uses:
-https://script.google.com/macros/s/AKfycbyBZ4CVwLbZ6j7tNmvP_Y92V8TPUSmJwyqX-wmRsiUsrH4Oahe63xHww5ug9b7PsTk7/exec
+The existing Apps Script URL remains configured in app.js. Only change
+GOOGLE_SCRIPT_URL if Google issued a different /exec address.
 
-If the deployment URL changes, update GOOGLE_SCRIPT_URL at the top of app.js.
 
-EXPECTED VEHICLE REGISTER HEADERS
-The backend recognises common alternatives. Recommended:
-- Registration
-- Type
-- Category
-- Seats
-- Tail Lift
-- Notes
-- Active
-
-EXPECTED DRIVERS HEADERS
-Recommended:
-- Name
-- Active
-
-"Active" may contain Yes/No, TRUE/FALSE, Active/Inactive, or may be left blank.
-Blank is treated as active.
-
-FRONTEND DEPLOYMENT
-1. Replace the frontend repository files with this package.
-2. Commit and push.
-3. Wait for Cloudflare Pages.
-4. Clear the old PWA/site cache once because the service worker version changed.
-5. Reload and verify the vehicle and driver dropdowns.
-
-TEST THE BACKEND FIRST
-Open this in a browser:
-<YOUR_EXEC_URL>?action=bootstrap
-
-You should receive JSON containing:
-- "ok": true
-- "vehicles": [...]
-- "drivers": [...]
-
-If it returns an error, check SPREADSHEET_ID, sheet names and header rows.
+VERSION 4.1 IMPROVEMENTS
+- Vehicle illustration appears when a fleet registration is selected.
+- Driver list includes “Other — enter name” for guest and loan drivers.
+- Q010 asks whether there is any other damage not already listed. YES opens defect details.
+- The towing question is now Q011.

@@ -1,7 +1,7 @@
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBZ4CVwLbZ6j7tNmvP_Y92V8TPUSmJwyqX-wmRsiUsrH4Oahe63xHww5ug9b7PsTk7/exec";
 const HISTORY_KEY = "cambriaVehicleChecksV21";
 const LAST_SUBMISSION_KEY = "cambriaVehicleLastSubmission";
-const BOOTSTRAP_CACHE_KEY = "cambriaVehicleBootstrapV34";
+const BOOTSTRAP_CACHE_KEY = "cambriaVehicleBootstrapV41";
 
 const QUESTION_DEFS = [
   {ref:"Q001", text:"Horn working correctly"},
@@ -13,7 +13,8 @@ const QUESTION_DEFS = [
   {ref:"Q007", text:"Lights and indicators working correctly"},
   {ref:"Q008", text:"Steering operates satisfactorily"},
   {ref:"Q009", text:"Brakes operate satisfactorily"},
-  {ref:"Q010", text:"Will the vehicle be used for towing?", special:"towing"}
+  {ref:"Q010", text:"Is there any other damage not already listed?", special:"yesDefect"},
+  {ref:"Q011", text:"Will the vehicle be used for towing?", special:"towing"}
 ];
 
 let vehicles = [];
@@ -90,7 +91,8 @@ async function init(){
 
   driverSelect.innerHTML = [
     `<option value="">Select driver</option>`,
-    ...activeDrivers.map(d => `<option value="${escapeHtml(d.name)}">${escapeHtml(d.name)}</option>`)
+    ...activeDrivers.map(d => `<option value="${escapeHtml(d.name)}">${escapeHtml(d.name)}</option>`),
+    `<option value="__OTHER__">Other — enter name</option>`
   ].join("");
 
   if (!activeVehicles.length) {
@@ -168,6 +170,7 @@ async function loadBootstrapData() {
 
 function bindEvents() {
   bindChange("vehicle", updateVehicleDetails);
+  bindChange("driver", updateCustomDriverVisibility);
 
   bindClick("vehicleNextBtn", () => goToStep("detailsStep"));
   bindClick("detailsBackBtn", () => goToStep("vehicleStep"));
@@ -214,20 +217,52 @@ function goToStep(stepId){
   window.scrollTo({top:0, behavior:"smooth"});
 }
 
+function normaliseRegistration(value){
+  return String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+const VEHICLE_PRESENTATION = {
+  HC04XTL: {model:"Mercedes Sprinter", image:"images/vehicles/hc04xtl.svg"},
+  YT60XTR: {model:"Ford Transit Mk7", image:"images/vehicles/yt60xtr.svg"},
+  SC16LVY: {model:"Ford Transit Mk8", image:"images/vehicles/sc16lvy.svg"},
+  MX10AYH: {model:"DAF 45 160", image:"images/vehicles/mx10ayh.svg"}
+};
+
 function updateVehicleDetails(){
   const v = selectedVehicle();
   const details = el("vehicleDetails");
 
   if(!v || !details) return;
 
+  const presentation = VEHICLE_PRESENTATION[normaliseRegistration(v.registration)] || {};
   const seats = v.seats ? `${v.seats} seats` : "Not applicable";
+  const displayModel = presentation.model || v.type || "Fleet vehicle";
+  const imageHtml = presentation.image
+    ? `<img class="vehicle-photo" src="${presentation.image}" alt="White ${escapeHtml(displayModel)}, registration ${escapeHtml(v.registration)}">`
+    : "";
+
   details.innerHTML = `
-    <strong>${escapeHtml(v.registration)}</strong><br>
-    ${escapeHtml(v.type)}<br>
-    Category: ${escapeHtml(v.category)} · Seating: ${escapeHtml(String(seats))}
-    ${v.tailLift === "Yes" ? "<br>Tail lift fitted" : ""}
-    ${v.notes ? `<br>${escapeHtml(v.notes)}` : ""}
+    ${imageHtml}
+    <div class="vehicle-copy">
+      <strong class="vehicle-reg">${escapeHtml(v.registration)}</strong>
+      <span class="vehicle-model">${escapeHtml(displayModel)} · White</span>
+      <span>Category: ${escapeHtml(v.category)} · Seating: ${escapeHtml(String(seats))}</span>
+      ${v.tailLift === "Yes" ? "<span>Tail lift fitted</span>" : ""}
+      ${v.notes ? `<span>${escapeHtml(v.notes)}</span>` : ""}
+    </div>
   `;
+}
+
+function updateCustomDriverVisibility(){
+  const otherSelected = el("driver")?.value === "__OTHER__";
+  const wrap = el("customDriverWrap");
+  if (wrap) wrap.classList.toggle("hidden", !otherSelected);
+  if (!otherSelected && el("customDriver")) el("customDriver").value = "";
+}
+
+function getDriverName(){
+  const selected = el("driver")?.value || "";
+  return selected === "__OTHER__" ? (el("customDriver")?.value.trim() || "") : selected;
 }
 
 function selectedVehicle(){
@@ -242,6 +277,12 @@ function beginInspection(){
 
   if (!driver || !driver.value) {
     alert("Please select the driver.");
+    return;
+  }
+
+  if (!getDriverName()) {
+    alert("Please enter the driver's full name.");
+    el("customDriver")?.focus();
     return;
   }
 
@@ -266,7 +307,7 @@ function renderQuestions(){
   }
 
   questionsContainer.innerHTML = QUESTION_DEFS.map(q => `
-    <div class="question-row">
+    <div class="question-row ${q.special === "yesDefect" ? "yes-defect" : ""}">
       <div class="question-title">${q.ref} · ${escapeHtml(q.text)}</div>
       <div class="answer-buttons">
         <button type="button" class="answer-btn yes" data-ref="${q.ref}" data-answer="YES">YES</button>
@@ -317,7 +358,11 @@ function updateProgress(){
 }
 
 function failedSafetyChecks(){
-  return QUESTION_DEFS.filter(q => q.special !== "towing" && answers[q.ref] === "NO");
+  return QUESTION_DEFS.filter(q => {
+    if (q.special === "towing") return false;
+    if (q.special === "yesDefect") return answers[q.ref] === "YES";
+    return answers[q.ref] === "NO";
+  });
 }
 
 function updateDefectPanel(){
@@ -379,13 +424,13 @@ function prepareReview(){
   }
 
   const result = failed.length ? "DEFECT" : "OK";
-  const towing = answers.Q010 === "YES" ? "Yes" : "No";
+  const towing = answers.Q011 === "YES" ? "Yes" : "No";
   const damageCount = el("damagePhotos")?.files.length || 0;
   const seatingCount = seatingPhoto?.files.length || 0;
 
   const answersHtml = QUESTION_DEFS.map(q => {
     const value = answers[q.ref];
-    const fail = q.special !== "towing" && value === "NO";
+    const fail = q.special === "yesDefect" ? value === "YES" : q.special !== "towing" && value === "NO";
     return `
       <div class="review-answer">
         <span>${q.ref} · ${escapeHtml(q.text)}</span>
@@ -403,7 +448,7 @@ function prepareReview(){
     <div class="review-block">
       <div class="review-grid">
         <div class="review-item"><span>Vehicle</span><strong>${escapeHtml(el("vehicle")?.value || "")}</strong></div>
-        <div class="review-item"><span>Driver</span><strong>${escapeHtml(el("driver")?.value || "")}</strong></div>
+        <div class="review-item"><span>Driver</span><strong>${escapeHtml(getDriverName())}</strong></div>
         <div class="review-item"><span>Start mileage</span><strong>${escapeHtml(el("mileage")?.value || "")}</strong></div>
         <div class="review-item"><span>Result</span><strong class="${result === "OK" ? "answer-pass" : "answer-fail"}">${result}</strong></div>
         <div class="review-item"><span>Estimated use</span><strong>${escapeHtml(el("departure")?.value || "Not entered")} – ${escapeHtml(el("returnTime")?.value || "Not entered")}</strong></div>
@@ -455,13 +500,13 @@ async function submitCheck(){
       date: new Date().toISOString().slice(0,10),
       time: new Date().toTimeString().slice(0,8),
       vehicle: el("vehicle")?.value || "",
-      driver: el("driver")?.value || "",
+      driver: getDriverName(),
       startMileage: el("mileage")?.value || "",
       finishMileage: "",
       departureTime: el("departure")?.value || "",
       returnTime: el("returnTime")?.value || "",
       result,
-      towingRequired: answers.Q010 === "YES" ? "Yes" : "No",
+      towingRequired: answers.Q011 === "YES" ? "Yes" : "No",
       driverDeclaration: "Confirmed",
       informationDeclaration: "Confirmed",
       licenceDeclaration: "Confirmed",
@@ -695,13 +740,17 @@ function resetToHome(){
     "returnTime",
     "defects",
     "damagePhotos",
-    "seatingPhoto"
+    "seatingPhoto",
+    "customDriver"
   ];
 
   valuesToClear.forEach(id => {
     const element = el(id);
     if (element) element.value = "";
   });
+
+  if (el("driver")) el("driver").value = "";
+  updateCustomDriverVisibility();
 
   if (el("informationDeclaration")) el("informationDeclaration").checked = false;
   if (el("licenceDeclaration")) el("licenceDeclaration").checked = false;

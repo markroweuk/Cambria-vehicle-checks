@@ -1,4 +1,4 @@
-const CACHE_NAME = "cambria-fleet-safety-v4-0";
+const CACHE_NAME = "cambria-fleet-safety-v4-1";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -8,7 +8,11 @@ const APP_FILES = [
   "./images/cambria-logo.png",
   "./images/icon-192.png",
   "./images/icon-512.png",
-  "./apple-touch-icon.png"
+  "./apple-touch-icon.png",
+  "./images/vehicles/hc04xtl.svg",
+  "./images/vehicles/yt60xtr.svg",
+  "./images/vehicles/sc16lvy.svg",
+  "./images/vehicles/mx10ayh.svg"
 ];
 
 self.addEventListener("install", event => {
