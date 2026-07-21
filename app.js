@@ -1,4 +1,4 @@
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxW7n5Y87G99ukV_NDZNSPGwg5MriTpfFbHw3LBjW9q9wo3J6gk7o-RACcjMYaR42pOPw/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBZ4CVwLbZ6j7tNmvP_Y92V8TPUSmJwyqX-wmRsiUsrH4Oahe63xHww5ug9b7PsTk7/exec";
 const HISTORY_KEY = "cambriaVehicleChecksV21";
 const LAST_SUBMISSION_KEY = "cambriaVehicleLastSubmission";
 
