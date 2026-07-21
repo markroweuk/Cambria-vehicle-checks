@@ -1,0 +1,46 @@
+CAMBRIA VEHICLE CHECK v3.2 FINAL PRODUCTION
+
+ONE INSTALL DEPLOYMENT
+
+This is the production baseline. Do not mix files from previous versions.
+
+INSTALL ORDER
+
+1. GOOGLE SHEET
+- Create a new Google Sheet.
+- Import the supplied:
+  Cambria Vehicle Check Production Template.xlsx
+- Confirm tabs:
+  Inspections
+  Inspection Answers
+  Defects
+  Vehicles
+  Drivers
+
+2. GOOGLE APPS SCRIPT
+- Open Extensions > Apps Script.
+- Replace all code with:
+  google_apps_script/Code.gs
+- Save.
+- Deploy as Web App:
+    Execute as: Me
+    Access: Anyone
+- Copy the Web App URL.
+
+3. APP CONNECTION
+- Open app/config.js
+- Paste the Web App URL.
+- Upload the complete app folder to GitLab.
+- Allow Cloudflare Pages to deploy.
+
+4. TEST
+Complete one inspection.
+
+Confirm:
+✓ Inspections row created
+✓ Inspection Answers rows created
+✓ Email received
+✓ Dashboard updates
+
+5. PRODUCTION USE
+Only make changes from this baseline.
