@@ -1,7 +1,8 @@
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBZ4CVwLbZ6j7tNmvP_Y92V8TPUSmJwyqX-wmRsiUsrH4Oahe63xHww5ug9b7PsTk7/exec";
 const HISTORY_KEY = "cambriaVehicleChecksV21";
 const LAST_SUBMISSION_KEY = "cambriaVehicleLastSubmission";
-const BOOTSTRAP_CACHE_KEY = "cambriaVehicleBootstrapV41";
+const BOOTSTRAP_CACHE_KEY = "cambriaVehicleBootstrapV42";
+const DASHBOARD_CACHE_KEY = "cambriaVehicleDashboardV42";
 
 const QUESTION_DEFS = [
   {ref:"Q001", text:"Horn working correctly"},
@@ -110,12 +111,10 @@ async function init(){
   renderQuestions();
   updateProgress();
 
-  try {
-    renderDashboard();
-    renderLastSubmission();
-  } catch (displayError) {
+  renderDashboard().catch(displayError => {
     console.warn("Some optional dashboard elements are missing:", displayError);
-  }
+  });
+  renderLastSubmission();
 }
 
 
@@ -185,7 +184,7 @@ function bindEvents() {
 
   bindClick("driverTab", () => switchView("driver"));
   bindClick("managerTab", () => switchView("manager"));
-  bindClick("refreshDashboardBtn", renderDashboard);
+  bindClick("refreshDashboardBtn", () => renderDashboard(true));
   bindClick("homeBtn", resetToHome);
 }
 
@@ -203,11 +202,9 @@ function switchView(view){
   if (managerView) managerView.classList.toggle("hidden", driver);
 
   if(!driver) {
-    try {
-      renderDashboard();
-    } catch (error) {
+    renderDashboard().catch(error => {
       console.warn("Unable to render manager dashboard:", error);
-    }
+    });
   }
 }
 
@@ -628,59 +625,132 @@ function getLocalHistory(){
   }
 }
 
-function renderDashboard(){
-  const records = getLocalHistory();
-  const defects = records.filter(r => r.result === "DEFECT");
-  const vehicleCount = new Set(records.map(r => r.vehicle)).size;
+async function loadDashboardData(forceRefresh = false){
+  const url = `${GOOGLE_SCRIPT_URL}?action=dashboard&_=${Date.now()}`;
 
-  const metricChecks = el("metricChecks");
-  const metricDefects = el("metricDefects");
-  const metricVehicles = el("metricVehicles");
+  try {
+    const response = await fetch(url, {method:"GET", cache:"no-store"});
+    if (!response.ok) throw new Error(`Dashboard request failed (${response.status})`);
 
-  if (metricChecks) metricChecks.textContent = records.length;
-  if (metricDefects) metricDefects.textContent = defects.length;
-  if (metricVehicles) metricVehicles.textContent = vehicleCount;
+    const data = await response.json();
+    if (!data || data.ok !== true || !data.dashboard) {
+      throw new Error(data?.error || "Invalid dashboard response");
+    }
 
-  const recentChecks = el("recentChecks");
-  if (recentChecks) {
-    recentChecks.innerHTML = records.length
-      ? records.slice(0,10).map(r => `
-        <div class="list-item">
-          <strong>${escapeHtml(r.vehicle)}</strong>
-          <span class="tag ${r.result === "OK" ? "ok" : "defect"}">${r.result}</span>
-          <div>${escapeHtml(r.driver)} · ${escapeHtml(r.inspectionId)}</div>
-          <div class="list-meta">${formatDate(r.submittedAt)} · Mileage ${escapeHtml(String(r.startMileage || ""))}</div>
-        </div>`).join("")
-      : `<div class="empty">No completed checks are stored on this device yet.</div>`;
+    const cached = {
+      savedAt:new Date().toISOString(),
+      dashboard:data.dashboard
+    };
+    localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(cached));
+    return {dashboard:data.dashboard, source:"live"};
+  } catch (networkError) {
+    console.warn("Live dashboard unavailable; checking dashboard cache:", networkError);
+    try {
+      const cached = JSON.parse(localStorage.getItem(DASHBOARD_CACHE_KEY) || "null");
+      if (cached?.dashboard) return {dashboard:cached.dashboard, source:"cache", savedAt:cached.savedAt};
+    } catch (cacheError) {
+      console.warn("Cached dashboard data is unreadable:", cacheError);
+    }
+    throw networkError;
   }
+}
 
-  const openDefects = el("openDefects");
-  if (openDefects) {
-    openDefects.innerHTML = defects.length
-      ? defects.map(r => `
-        <div class="list-item">
-          <strong>${escapeHtml(r.vehicle)}</strong>
-          <span class="tag defect">OPEN</span>
-          <div>${escapeHtml(r.defects || "Defect reported")}</div>
-          <div class="list-meta">${escapeHtml(r.inspectionId)} · ${formatDate(r.submittedAt)}</div>
-        </div>`).join("")
-      : `<div class="empty">No open defects are stored on this device.</div>`;
+async function renderDashboard(forceRefresh = false){
+  const refreshButton = el("refreshDashboardBtn");
+  const status = el("dashboardStatus");
+  if (refreshButton) {
+    refreshButton.disabled = true;
+    refreshButton.textContent = "Loading…";
   }
+  if (status) status.textContent = "Loading live data from Google Sheets…";
 
-  const fleetOverview = el("fleetOverview");
-  if (fleetOverview) {
-    fleetOverview.innerHTML = vehicles.filter(v => v.active).map(v => {
-      const latest = records.find(r => r.vehicle === v.registration);
-      const status = latest?.result || "NO CHECK";
-      return `
-        <div class="list-item">
-          <strong>${escapeHtml(v.registration)}</strong>
-          <span class="tag ${status === "OK" ? "ok" : status === "DEFECT" ? "defect" : ""}">${status}</span>
-          <div>${escapeHtml(v.type)}</div>
-          <div class="list-meta">${latest ? `Last check ${formatDate(latest.submittedAt)} by ${escapeHtml(latest.driver)}` : "No check stored on this device"}</div>
-        </div>`;
-    }).join("");
+  ["metricChecks","metricDefects","metricVehicles"].forEach(id => {
+    const node = el(id);
+    if (node) node.textContent = "—";
+  });
+
+  try {
+    const loaded = await loadDashboardData(forceRefresh);
+    const data = loaded.dashboard || {};
+    const records = Array.isArray(data.recentChecks) ? data.recentChecks : [];
+    const defects = Array.isArray(data.openDefects) ? data.openDefects : [];
+    const metrics = data.metrics || {};
+
+    const metricChecks = el("metricChecks");
+    const metricDefects = el("metricDefects");
+    const metricVehicles = el("metricVehicles");
+    if (metricChecks) metricChecks.textContent = Number(metrics.checks || 0);
+    if (metricDefects) metricDefects.textContent = Number(metrics.openDefects || 0);
+    if (metricVehicles) metricVehicles.textContent = Number(metrics.vehiclesChecked || 0);
+
+    const recentChecks = el("recentChecks");
+    if (recentChecks) {
+      recentChecks.innerHTML = records.length
+        ? records.slice(0,10).map(r => `
+          <div class="list-item">
+            <strong>${escapeHtml(r.vehicle || "Unknown vehicle")}</strong>
+            <span class="tag ${r.result === "OK" ? "ok" : "defect"}">${escapeHtml(r.result || "UNKNOWN")}</span>
+            <div>${escapeHtml(r.driver || "Driver not recorded")} · ${escapeHtml(r.inspectionId || "No reference")}</div>
+            <div class="list-meta">${escapeHtml(formatDashboardDate(r))}${r.startMileage ? ` · Mileage ${escapeHtml(String(r.startMileage))}` : ""}</div>
+          </div>`).join("")
+        : `<div class="empty">No inspections are recorded in Google Sheets yet.</div>`;
+    }
+
+    const openDefects = el("openDefects");
+    if (openDefects) {
+      openDefects.innerHTML = defects.length
+        ? defects.map(r => `
+          <div class="list-item">
+            <strong>${escapeHtml(r.vehicle || "Unknown vehicle")}</strong>
+            <span class="tag defect">${escapeHtml(r.status || "OPEN")}</span>
+            <div>${escapeHtml(r.description || "Defect reported")}</div>
+            <div class="list-meta">${escapeHtml(r.inspectionId || r.defectId || "No reference")}${r.dateRaised ? ` · ${escapeHtml(r.dateRaised)}` : ""}</div>
+          </div>`).join("")
+        : `<div class="empty">There are no open defects in Google Sheets.</div>`;
+    }
+
+    const fleetOverview = el("fleetOverview");
+    if (fleetOverview) {
+      fleetOverview.innerHTML = vehicles.filter(v => v.active !== false).map(v => {
+        const key = normaliseRegistration(v.registration);
+        const latest = records.find(r => normaliseRegistration(r.vehicle) === key);
+        const vehicleDefects = defects.filter(r => normaliseRegistration(r.vehicle) === key);
+        const statusText = vehicleDefects.length ? "OPEN DEFECT" : (latest?.result || "NO CHECK");
+        const tagClass = vehicleDefects.length || latest?.result === "DEFECT" ? "defect" : latest?.result === "OK" ? "ok" : "";
+        return `
+          <div class="list-item">
+            <strong>${escapeHtml(v.registration)}</strong>
+            <span class="tag ${tagClass}">${escapeHtml(statusText)}</span>
+            <div>${escapeHtml(v.type || "Fleet vehicle")}</div>
+            <div class="list-meta">${latest ? `Last check ${escapeHtml(formatDashboardDate(latest))} by ${escapeHtml(latest.driver || "Unknown driver")}` : "No inspection recorded"}</div>
+          </div>`;
+      }).join("");
+    }
+
+    if (status) {
+      status.textContent = loaded.source === "live"
+        ? `Live Google Sheets data · updated ${new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}`
+        : `Offline cached dashboard · last saved ${formatDate(loaded.savedAt)}`;
+    }
+  } catch (error) {
+    console.error("Dashboard load failed:", error);
+    if (status) status.textContent = "Unable to load dashboard data. Check the Apps Script deployment and internet connection.";
+    ["recentChecks","openDefects","fleetOverview"].forEach(id => {
+      const node = el(id);
+      if (node) node.innerHTML = `<div class="empty">Dashboard data could not be loaded.</div>`;
+    });
+  } finally {
+    if (refreshButton) {
+      refreshButton.disabled = false;
+      refreshButton.textContent = "Refresh";
+    }
   }
+}
+
+function formatDashboardDate(record){
+  if (record?.submittedAt) return formatDate(record.submittedAt);
+  const parts = [record?.date, record?.time].filter(Boolean);
+  return parts.join(" ") || "Date not recorded";
 }
 
 function showSubmissionSuccess(payload) {

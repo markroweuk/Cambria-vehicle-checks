@@ -1,38 +1,35 @@
-CAMBRIA FLEET SAFETY — VERSION 4.1 PRODUCTION
+CAMBRIA FLEET SAFETY — VERSION 4.2 LIVE DASHBOARD
 
-This release keeps the live Google Sheets architecture from v3.4 and restores
-the Cambria Sea Scouts visual identity from Camp Companion.
+WHAT CHANGED
+- Manager Dashboard now reads live from Google Sheets through Apps Script.
+- Figures are consistent on every phone, tablet and computer.
+- Recent checks come from the Inspections sheet.
+- Open defects come from the Defects sheet.
+- Fleet overview shows the latest check and open-defect state for each active vehicle.
+- Cached dashboard data is used only as an offline fallback.
+- Bold text, colours, borders and other Google Sheet formatting do not affect the app.
 
-BRANDING CHANGES
-- Uses the same Cambria Sea Scouts logo artwork as Camp Companion.
-- Uses the same navy/blue header and purple Scout accent.
-- Header app name is "Fleet Safety", matching the "Camp Companion" treatment.
-- New Fleet Safety hero card: "Vehicle Check Companion".
-- Cards, typography, spacing and buttons now follow the same Cambria design family.
+IMPORTANT: BOTH BACKEND AND FRONTEND MUST BE DEPLOYED
 
-DATA ARCHITECTURE
-- Vehicles load from the "Vehicle Register" Google Sheet.
-- Drivers load from the "Drivers" Google Sheet.
-- Inspections write to "Inspections".
-- Answers write to "Inspection Answers".
-- Defects write to "Defects".
-- Reports are sent by Google Apps Script.
+BACKEND
+1. Open the vehicle-check Google Sheet.
+2. Extensions > Apps Script.
+3. Back up the existing Code.gs.
+4. Replace Code.gs with AppsScript_Code_CopyPaste.txt from this package.
+5. Preserve/paste the correct SPREADSHEET_ID at the top.
+6. Save.
+7. Deploy > Manage deployments > Edit > New version > Deploy.
+8. Test: <EXEC_URL>?action=dashboard
+9. Confirm the response contains "ok":true and dashboard metrics.
 
-DEPLOYMENT
-1. Complete the Apps Script v3.4 backend deployment first.
-2. Confirm <EXEC_URL>?action=bootstrap returns vehicles and drivers.
-3. Replace the files in the GitLab/Cloudflare frontend repository with this package.
-4. Commit and wait for Cloudflare Pages to deploy.
-5. Clear the old PWA/site cache once, or remove and reinstall the PWA.
-6. Confirm the Cambria header, Fleet Safety title, vehicles and drivers all appear.
-7. Submit one normal check and one defect check.
+FRONTEND
+1. Replace the GitLab/Cloudflare frontend files with this package.
+2. Commit to the production branch.
+3. Wait for Cloudflare Pages deployment success.
+4. Clear the old PWA cache once or remove and reinstall the PWA.
+5. Open Manager Dashboard and press Refresh.
 
-The existing Apps Script URL remains configured in app.js. Only change
-GOOGLE_SCRIPT_URL if Google issued a different /exec address.
-
-
-VERSION 4.1 IMPROVEMENTS
-- Vehicle illustration appears when a fleet registration is selected.
-- Driver list includes “Other — enter name” for guest and loan drivers.
-- Q010 asks whether there is any other damage not already listed. YES opens defect details.
-- The towing question is now Q011.
+EXPECTED SHEET HEADERS
+The code accepts common header aliases. Current production headings such as
+Inspection ID, Date, Time, Vehicle, Driver, Start Mileage, Result, Defects,
+Defect ID, Description, Date Raised and Status are supported.

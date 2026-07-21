@@ -1,4 +1,4 @@
 JavaScript syntax: PASS
+Apps Script syntax: PASS
 Missing DOM IDs: None
-Vehicle illustrations: 4
-Question count: 11
+Live dashboard endpoint: INCLUDED
